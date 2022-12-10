@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.views.generic import TemplateView
 from django.views.decorators.cache import never_cache
 from rest_framework import viewsets
-from backend.demoapp.tasks import add
+from backend.spider.jdSpider import jdSpider, to_excel
 from .models import Message, MessageSerializer, UserInfo, UserInfoSerializer
 from celery.result import AsyncResult
 
@@ -23,7 +23,11 @@ class UserInfoViewSet(viewsets.ModelViewSet):
     serializer_class = UserInfoSerializer
 
 
+# celery -A proj worker -l info -P eventlet
 def test_index(request):
-    result = add.delay(255, 327)
-    res = result.get(timeout=1)
-    return HttpResponse(result.id + "    " + str(res))
+    response = HttpResponse(content_type='application/vnd.ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=jdK8STask.xls'
+    result = jdSpider.delay()
+    head_data, results = result.get(timeout=1000)
+    to_excel(head_data, results).save(response)
+    return response

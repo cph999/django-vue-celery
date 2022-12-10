@@ -1,4 +1,4 @@
-from backend.demoapp.models import Widget
+from backend.spider.models import Widget
 
 from celery import shared_task
 
